@@ -1,6 +1,6 @@
 {
   "name": "@sadboilogan/tt-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Wrapper for the Transport Tycoon FiveM server API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
