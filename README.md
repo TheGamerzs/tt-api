@@ -2,6 +2,10 @@
 
 A wrapper for the FiveM server, Transport Tycoon
 
+[NPM page](https://www.npmjs.com/package/transporttycoon)
+
+`npm install transporttycoon`
+
 Features:
 
 - Handles servers being down, will attempt to find the next available server
