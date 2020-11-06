@@ -12,12 +12,12 @@ Features:
 Usage:
 
 ```js
-  const { TransportTycoon } = require('tt-api');
+const { TransportTycoon } = require('transporttycoon');
 
-  (async () => {
-    const TT = new TransportTycoon('API KEY', true);
-    await TT.setupCharges();
-  })();
+(async () => {
+  const TT = new TransportTycoon('API KEY', true);
+  await TT.setupCharges();
+})();
 ```
 
 `setupCharges()` should only be called if the second parameter of the constructor is true (trackCharges)
