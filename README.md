@@ -3,4 +3,21 @@
 A wrapper for the FiveM server, Transport Tycoon
 
 Features:
- - Handles server being down, at
+
+- Handles servers being down, will attempt to find the next available server
+- Implements many (if not all) API routes that are known
+- Auto-completion for a lot of returned data (although many return arrays, so sometimes not as useful)
+- Keeps track of charges, can get how many charges are left
+
+Usage:
+
+```js
+  const { TransportTycoon } = require('tt-api');
+
+  (async () => {
+    const TT = new TransportTycoon('API KEY', true);
+    await TT.setupCharges();
+  })();
+```
+
+`setupCharges()` should only be called if the second parameter of the constructor is true (trackCharges)
