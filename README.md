@@ -17,6 +17,8 @@ const { TransportTycoon } = require('transporttycoon');
 (async () => {
   const TT = new TransportTycoon('API KEY', true);
   await TT.setupCharges();
+  const economy = await TT.getEconomyInfo();
+  console.log(economy);
 })();
 ```
 
