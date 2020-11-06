@@ -1,5 +1,5 @@
 {
-  "name": "@sadboilogan/tt-api",
+  "name": "transporttycoon",
   "version": "1.0.2",
   "description": "Wrapper for the Transport Tycoon FiveM server API",
   "main": "lib/index.js",
