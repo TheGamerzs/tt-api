@@ -245,6 +245,16 @@ export class TransportTycoon {
     }
   }
 
+  public async getWebadmin(server: number = 0) {
+    if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
+    try {
+      const res = await this.tycoon.get(`http://${tycoonServers[server]}/webadmin/`);
+      return Promise.resolve(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
   public async getEconomyInfo() {
     try {
       const res = await this.tycoon.get('/economy.csv');
