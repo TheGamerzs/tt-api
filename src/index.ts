@@ -10,6 +10,7 @@ import { ActiveAirline } from './models/ActiveAirline';
 import { Top10 } from './models/Stats';
 import { Economy } from './models/Economy';
 import { OwnedVehicles } from './models/OwnedVehicles';
+import { Weather } from './models/Weather';
 
 const tycoonServers: string[] = [
   'server.tycoon.community:30120',
@@ -96,6 +97,17 @@ export class TransportTycoon {
     return this.charges.count;
   }
 
+  public async getCurrentWeather(server: number = 0) {
+    if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/weather.json`);
+      return Promise.resolve<Weather>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
   public async getActiveAirlineRoutes(server: number = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
@@ -159,6 +171,8 @@ export class TransportTycoon {
       return Promise.reject(err);
     }
   }
+
+  
 
   public async getUserBusinesses(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
