@@ -11,6 +11,7 @@ import { Top10 } from './models/Stats';
 import { Economy } from './models/Economy';
 import { OwnedVehicles } from './models/OwnedVehicles';
 import { Weather } from './models/Weather';
+import { FactionInfo, FactionMember } from './models/FactionData';
 
 const tycoonServers: string[] = [
   'server.tycoon.community:30120',
@@ -202,6 +203,56 @@ export class TransportTycoon {
       if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/getuserfaq/${userId}`);
       return Promise.resolve<Faction>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getKeyFactionSize() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/faction/size.json');
+      return Promise.resolve<[size: number]>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getKeyFactionMembers() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/faction/members.json');
+      return Promise.resolve<FactionMember[]>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getKeyFactionPerks() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/faction/perks.json');
+      return Promise.resolve<[perks: number]>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getKeyFactionBalance() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/faction/balance.json');
+      return Promise.resolve<[balance: number]>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getKeyFactionInfo() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/faction/info.json');
+      return Promise.resolve<FactionInfo>(res.data);
     } catch (err) {
       return Promise.reject(err);
     }
