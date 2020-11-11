@@ -1,6 +1,6 @@
 interface Server {
   number: string;
-  dxp: [active: boolean, host: string];
+  dxp: [active: boolean, host: string, time_remaining: number, unk: number];
   motd: string;
   name: string;
   region: string;
