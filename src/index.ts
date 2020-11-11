@@ -173,7 +173,16 @@ export class TransportTycoon {
     }
   }
 
-  
+  public async getUserSkillsHtml(userId: string) {
+    if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get(`/skills/${userId}`);
+      return Promise.resolve<Players>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
 
   public async getUserBusinesses(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
