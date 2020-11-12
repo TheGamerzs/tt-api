@@ -57,7 +57,7 @@ export class TransportTycoon {
 
     this.tycoon = axios.create({
       baseURL: `http://${tycoonServers[0]}/status`,
-      timeout: 10000
+      timeout: 5000
     });
 
     if (apiToken) this.tycoon.defaults.headers['X-Tycoon-Key'] = apiToken;
@@ -73,20 +73,26 @@ export class TransportTycoon {
         return Promise.reject({msg: `[TransportTycoon] Invalid API route - ${error.config.url}`, code: 'invalid_api'});
       }
 
-      if (error.code === 'ECONNABORTED' && error.config) {
+      if (error?.code === 'ECONNABORTED' && error?.config) {
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
-        await this.tycoon.get(`http://${tycoonServers[this.settings.serverIndex]}/status/alive`);
-        return axios.request(error.config);
+        this.tycoon.defaults.baseURL = `http://${tycoonServers[this.settings.serverIndex]}/status`;
+        try {
+          await this.tycoon.get('/alive');
+          error.config.baseURL = this.tycoon.defaults.baseURL;
+          return axios.request(error.config);
+        // tslint:disable-next-line: no-empty
+        } catch(err) {}
+      } else {
+        return Promise.reject(error);
       }
-
-      return Promise.reject(error);
     });
   }
 
   public async setupCharges() {
     if (this.charges.checking && this.token) {
       const charges = await this.tycoon.get('/charges.json');
+      if (!charges?.data[0]) return Promise.resolve(false);
       if (charges.data[0] === 0) return Promise.reject({msg: '[TransportTycoon] Charges returned 0. Is your key valid & does it have charges?', code: 'no_charges'});
       this.charges.count = charges.data[0];
       this.charges.loaded = true;
