@@ -52,26 +52,26 @@ export class TransportTycoon {
     serverIndex: 0
   };
 
-  public constructor(apiToken: string = '', trackCharges: boolean = false) {
+  public constructor(apiToken: string = '', trackCharges: boolean = false, timeout: number = 5000) {
     this.token = apiToken;
     this.charges.checking = trackCharges;
 
     this.tycoon = axios.create({
       baseURL: `http://${tycoonServers[0]}/status`,
-      timeout: 5000
+      timeout
     });
 
     if (apiToken) this.tycoon.defaults.headers['X-Tycoon-Key'] = apiToken;
 
     this.tycoon.interceptors.response.use(undefined, async (error: AxiosError) => {
       if (error.response?.status === 402) {
-        return Promise.reject({msg: '[TransportTycoon] You are out of API charges!', code: 'no_charges'});
+        return Promise.reject({ msg: '[TransportTycoon] You are out of API charges!', code: 'no_charges' });
       } else if (error.response?.status === 401) {
-        return Promise.reject({msg: '[TransportTycoon] A key is required for this endpoint', code: 'key_protected'});
+        return Promise.reject({ msg: '[TransportTycoon] A key is required for this endpoint', code: 'key_protected' });
       } else if (error.response?.status === 403) {
-        return Promise.reject({msg: '[TransportTycoon] Invalid key given', code: 'invalid_key'});
+        return Promise.reject({ msg: '[TransportTycoon] Invalid key given', code: 'invalid_key' });
       } else if (error.response?.status === 403) {
-        return Promise.reject({msg: `[TransportTycoon] Invalid API route - ${error.config.url}`, code: 'invalid_api'});
+        return Promise.reject({ msg: `[TransportTycoon] Invalid API route - ${error.config.url}`, code: 'invalid_api' });
       }
 
       if (error?.code === 'ECONNABORTED' && error?.config) {
@@ -82,8 +82,8 @@ export class TransportTycoon {
           await this.tycoon.get('/alive');
           error.config.baseURL = this.tycoon.defaults.baseURL;
           return axios.request(error.config);
-        // tslint:disable-next-line: no-empty
-        } catch(err) {}
+          // tslint:disable-next-line: no-empty
+        } catch (err) { }
       } else {
         return Promise.reject(error);
       }
@@ -94,7 +94,7 @@ export class TransportTycoon {
     if (this.charges.checking && this.token) {
       const charges = await this.tycoon.get('/charges.json');
       if (!charges?.data[0]) return Promise.resolve(false);
-      if (charges.data[0] === 0) return Promise.reject({msg: '[TransportTycoon] Charges returned 0. Is your key valid & does it have charges?', code: 'no_charges'});
+      if (charges.data[0] === 0) return Promise.reject({ msg: '[TransportTycoon] Charges returned 0. Is your key valid & does it have charges?', code: 'no_charges' });
       this.charges.count = charges.data[0];
       this.charges.loaded = true;
       return Promise.resolve(charges.data[0]);
@@ -341,7 +341,7 @@ export class TransportTycoon {
       const res = await this.tycoon.get('/economy.csv');
       const economy = res.data.split('\n');
       economy.pop();
-      const formattedData = economy.map((data: string|string[]) => {
+      const formattedData = economy.map((data: string | string[]) => {
         const splitData = (data as string).split(';');
         const cleanData = {
           time: new Date(parseInt(splitData[0], 10) * 1000),
@@ -358,7 +358,7 @@ export class TransportTycoon {
       return Promise.reject(err);
     }
   }
-  
+
   public async getChestAdvanced(searchId: string) {
     try {
       if (this.charges.checking && this.charges.count > 0) this.charges.count--;
