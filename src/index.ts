@@ -358,7 +358,7 @@ export class TransportTycoon {
       return Promise.reject(err);
     }
   }
-
+  
   public async getChestAdvanced(searchId: string) {
     try {
       if (this.charges.checking && this.charges.count > 0) this.charges.count--;
