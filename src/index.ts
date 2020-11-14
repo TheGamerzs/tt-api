@@ -12,6 +12,7 @@ import { Economy } from './models/Economy';
 import { OwnedVehicles } from './models/OwnedVehicles';
 import { Weather } from './models/Weather';
 import { FactionInfo, FactionMember } from './models/FactionData';
+import { Chest } from './models/Chest';
 
 const tycoonServers: string[] = [
   'server.tycoon.community:30120',
@@ -353,6 +354,26 @@ export class TransportTycoon {
         return cleanData;
       });
       return Promise.resolve<Economy[]>(formattedData);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getChestAdvanced(searchId: string) {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get(`/chestadv/${searchId}`);
+      return Promise.resolve<Chest>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getChest(searchId: string) {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get(`/chest/${searchId}`);
+      return Promise.resolve<Chest>(res.data);
     } catch (err) {
       return Promise.reject(err);
     }
