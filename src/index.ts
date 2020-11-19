@@ -74,7 +74,8 @@ export class TransportTycoon {
         return Promise.reject({ msg: `[TransportTycoon] Invalid API route - ${error.config.url}`, code: 'invalid_api' });
       }
 
-      if (error?.code === 'ECONNABORTED' && error?.config) {
+      if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET') && error?.config) {
+        if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('http://')) return Promise.reject(error);
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
         this.tycoon.defaults.baseURL = `http://${tycoonServers[this.settings.serverIndex]}/status`;
