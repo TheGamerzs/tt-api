@@ -31,13 +31,19 @@ const statNames: string[] = [
   'firefighter_streak_record',
   'omni_void_leaderboard',
   'ems_streak_record',
+  'ems_deliveries',
   'houses_crafted',
   'toll_paid',
+  'trap_paid',
   'drops_collected',
   'quarry_excavate',
   'quarry_coop',
   'quarry_deliver',
-  'quarry_solo'
+  'quarry_solo',
+  'vehicles_crafted',
+  'eastereggs_pickup',
+  'maid_maxscans',
+  'maid_tickets'
 ];
 
 export class TransportTycoon {
