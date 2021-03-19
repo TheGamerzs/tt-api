@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse} from 'axios';
 import { PlayerPositions } from './models/PlayerPositions';
 import { Players } from './models/Players';
 import { PlayerWidget } from './models/PlayerWidget';
@@ -69,7 +69,10 @@ export class TransportTycoon {
 
     if (apiToken) this.tycoon.defaults.headers['X-Tycoon-Key'] = apiToken;
 
-    this.tycoon.interceptors.response.use(undefined, async (error: AxiosError) => {
+    this.tycoon.interceptors.response.use((response: AxiosResponse) => {
+      if (this.charges.checking && response.headers['x-tycoon-charges']) this.charges.count = parseInt(response.headers['x-tycoon-charges'], 10)
+      return Promise.resolve(response);
+    }, async (error: AxiosError) => {
       if (error.response?.status === 402) {
         return Promise.reject({ msg: '[TransportTycoon] You are out of API charges!', code: 'no_charges' });
       } else if (error.response?.status === 401) {
@@ -115,7 +118,6 @@ export class TransportTycoon {
   public async getCurrentWeather(server: number = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/weather.json`);
       return Promise.resolve<Weather>(res.data);
     } catch (err) {
@@ -126,7 +128,6 @@ export class TransportTycoon {
   public async getActiveAirlineRoutes(server: number = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/airline.json`);
       return Promise.resolve<ActiveAirline>(res.data);
     } catch (err) {
@@ -137,7 +138,6 @@ export class TransportTycoon {
   public async getPlayerPositions(server: number = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/map/positions.json`);
       return Promise.resolve<PlayerPositions>(res.data);
     } catch (err) {
@@ -148,7 +148,6 @@ export class TransportTycoon {
   public async getPlayers(server: number = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/players.json`);
       return Promise.resolve<Players>(res.data);
     } catch (err) {
@@ -168,7 +167,6 @@ export class TransportTycoon {
 
   public async getUserFromDiscord(discordId: string) {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/snowflake2user/${discordId}`);
       return Promise.resolve<Snowflake>(res.data);
     } catch (err) {
@@ -179,7 +177,6 @@ export class TransportTycoon {
   public async getUserInventoryHtml(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/inventory/${userId}`);
       return Promise.resolve<Players>(res.data);
     } catch (err) {
@@ -190,7 +187,6 @@ export class TransportTycoon {
   public async getUserSkillsHtml(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/skills/${userId}`);
       return Promise.resolve<Players>(res.data);
     } catch (err) {
@@ -201,7 +197,6 @@ export class TransportTycoon {
   public async getUserBusinesses(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/getuserbiz/${userId}`);
       return Promise.resolve<Business>(res.data);
     } catch (err) {
@@ -212,7 +207,6 @@ export class TransportTycoon {
   public async getUserOwnedVehicles(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/ownedvehicles/${userId}`);
       return Promise.resolve<OwnedVehicles>(res.data);
     } catch (err) {
@@ -223,7 +217,6 @@ export class TransportTycoon {
   public async getUserFaction(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/getuserfaq/${userId}`);
       return Promise.resolve<Faction>(res.data);
     } catch (err) {
@@ -233,7 +226,6 @@ export class TransportTycoon {
 
   public async getKeyFactionSize() {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get('/faction/size.json');
       return Promise.resolve<[size: number]>(res.data);
     } catch (err) {
@@ -243,7 +235,6 @@ export class TransportTycoon {
 
   public async getKeyFactionMembers() {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get('/faction/members.json');
       return Promise.resolve<FactionMember[]>(res.data);
     } catch (err) {
@@ -253,7 +244,6 @@ export class TransportTycoon {
 
   public async getKeyFactionPerks() {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get('/faction/perks.json');
       return Promise.resolve<[perks: number]>(res.data);
     } catch (err) {
@@ -263,7 +253,6 @@ export class TransportTycoon {
 
   public async getKeyFactionBalance() {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get('/faction/balance.json');
       return Promise.resolve<[balance: number]>(res.data);
     } catch (err) {
@@ -273,7 +262,6 @@ export class TransportTycoon {
 
   public async getKeyFactionInfo() {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get('/faction/info.json');
       return Promise.resolve<FactionInfo>(res.data);
     } catch (err) {
@@ -284,7 +272,6 @@ export class TransportTycoon {
   public async getUserData(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/data/${userId}`);
       return Promise.resolve<UserData>(res.data);
     } catch (err) {
@@ -295,7 +282,6 @@ export class TransportTycoon {
   public async getUserDataAdvanced(userId: string) {
     if ((userId.length === 18 || userId.length === 17)) userId = (await this.getUserFromDiscord(userId)).user_id.toString();
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/dataadv/${userId}`);
       return Promise.resolve<UserData>(res.data);
     } catch (err) {
@@ -306,7 +292,6 @@ export class TransportTycoon {
   public async getTop10(statName: string) {
     if (!statNames.includes(statName)) return Promise.reject('Stat name invalid. List of valid stats: ' + statNames.join(', '));
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/top10/${statName}`);
       return Promise.resolve<Top10>(res.data);
     } catch (err) {
@@ -368,7 +353,6 @@ export class TransportTycoon {
 
   public async getChestAdvanced(searchId: string) {
     try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/chestadv/${searchId}`);
       return Promise.resolve<Chest>(res.data);
     } catch (err) {
