@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse} from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { PlayerPositions } from './models/PlayerPositions';
 import { Players } from './models/Players';
 import { PlayerWidget } from './models/PlayerWidget';
@@ -70,7 +70,7 @@ export class TransportTycoon {
     if (apiToken) this.tycoon.defaults.headers['X-Tycoon-Key'] = apiToken;
 
     this.tycoon.interceptors.response.use((response: AxiosResponse) => {
-      if (this.charges.checking && response.headers['x-tycoon-charges']) this.charges.count = parseInt(response.headers['x-tycoon-charges'], 10)
+      if (this.charges.checking && response.headers['x-tycoon-charges']) this.charges.count = parseInt(response.headers['x-tycoon-charges'], 10);
       return Promise.resolve(response);
     }, async (error: AxiosError) => {
       if (error.response?.status === 402) {
