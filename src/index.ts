@@ -93,16 +93,16 @@ export class TransportTycoon {
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
         this.tycoon.defaults.baseURL = `http://${tycoonServers[this.settings.serverIndex]}/status`;
+        this.settings.curRetries++;
+        if (this.settings.curRetries > this.settings.maxRetries) {
+          this.settings.curRetries = 0;
+          return Promise.reject({ msg: `[TransportTycoon] Retry count of ${this.settings.maxRetries} exceeded`, code: 'max_retries', error });
+        }
         try {
           await this.tycoon.get('/alive');
           error.config.baseURL = this.tycoon.defaults.baseURL;
-          this.settings.curRetries++;
-          if (this.settings.curRetries > this.settings.maxRetries) {
-            this.settings.curRetries = 0;
-            return Promise.reject({ ...error, tt: 'Too many retries' });
-          }
           return axios.request(error.config);
-          // tslint:disable-next-line: no-empty
+          // eslint-disable-next-line no-empty
         } catch (err) { }
       } else {
         return Promise.reject(error);
