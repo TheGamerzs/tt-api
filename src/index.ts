@@ -13,7 +13,7 @@ import { OwnedVehicles } from './models/OwnedVehicles';
 import { Weather } from './models/Weather';
 import { FactionInfo, FactionMember } from './models/FactionData';
 import { Chest } from './models/Chest';
-import { throws } from 'node:assert';
+import { SkillRotation } from './models/ServerData';
 
 const tycoonServers: string[] = [
   'server.tycoon.community:30120',
@@ -61,7 +61,7 @@ export class TransportTycoon {
     curRetries: 0
   };
 
-  public constructor(apiToken = '', trackCharges = false, timeout = 5000, maxRetries = 10) {
+  public constructor(apiToken = '', trackCharges = false, timeout = 5000, maxRetries = 10, dontRetry = false) {
     this.token = apiToken;
     this.charges.checking = trackCharges;
     this.settings.maxRetries = maxRetries;
@@ -88,6 +88,7 @@ export class TransportTycoon {
         return Promise.reject({ msg: `[TransportTycoon] Invalid API route - ${error.config.url}`, code: 'invalid_api' });
       }
 
+      if (dontRetry) return Promise.reject(error);
       if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET') && error?.config) {
         if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('http://')) return Promise.reject(error);
         this.settings.serverIndex++;
@@ -375,6 +376,16 @@ export class TransportTycoon {
       if (this.charges.checking && this.charges.count > 0) this.charges.count--;
       const res = await this.tycoon.get(`/chest/${searchId}`);
       return Promise.resolve<Chest>(res.data);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  public async getSkillRotation() {
+    try {
+      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
+      const res = await this.tycoon.get('/skillrotation.json');
+      return Promise.resolve<SkillRotation>(res.data);
     } catch (err) {
       return Promise.reject(err);
     }
