@@ -16,7 +16,7 @@ import { Chest } from './models/Chest';
 import { SkillRotation } from './models/ServerData';
 
 const tycoonServers: string[] = [
-  'server.tycoon.community:30120',
+  'server.tycoon.community:30130',
   'server.tycoon.community:30122',
   'server.tycoon.community:30123',
   'server.tycoon.community:30124',

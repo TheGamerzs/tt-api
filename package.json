@@ -1,6 +1,6 @@
 {
   "name": "transporttycoon",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Wrapper for the Transport Tycoon FiveM server API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
