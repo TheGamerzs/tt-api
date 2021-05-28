@@ -16,16 +16,16 @@ import { Chest } from './models/Chest';
 import { SkillRotation } from './models/ServerData';
 
 const tycoonServers: string[] = [
-  'server.tycoon.community:30130',
-  'server.tycoon.community:30122',
-  'server.tycoon.community:30123',
-  'server.tycoon.community:30124',
-  'server.tycoon.community:30125',
-  'na.tycoon.community:30120',
-  'na.tycoon.community:30122',
-  'na.tycoon.community:30123',
-  'na.tycoon.community:30124',
-  'na.tycoon.community:30125',
+  'tycoon-w8r4q4.users.cfx.re',
+  'tycoon-2epova.users.cfx.re',
+  'tycoon-2epovd.users.cfx.re',
+  'tycoon-wdrypd.users.cfx.re',
+  'tycoon-njyvop.users.cfx.re',
+  'tycoon-2r4588.users.cfx.re',
+  'tycoon-npl5oy.users.cfx.re',
+  'tycoon-2vzlde.users.cfx.re',
+  'tycoon-wmapod.users.cfx.re',
+  'tycoon-wxjpge.users.cfx.re',
 ];
 
 const statNames: string[] = [
@@ -67,7 +67,7 @@ export class TransportTycoon {
     this.settings.maxRetries = maxRetries;
 
     this.tycoon = axios.create({
-      baseURL: `http://${tycoonServers[0]}/status`,
+      baseURL: `https://${tycoonServers[0]}/status`,
       timeout
     });
 
@@ -90,10 +90,10 @@ export class TransportTycoon {
 
       if (dontRetry) return Promise.reject(error);
       if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET') && error?.config) {
-        if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('http://')) return Promise.reject(error);
+        if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('https://')) return Promise.reject(error);
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
-        this.tycoon.defaults.baseURL = `http://${tycoonServers[this.settings.serverIndex]}/status`;
+        this.tycoon.defaults.baseURL = `https://${tycoonServers[this.settings.serverIndex]}/status`;
         this.settings.curRetries++;
         if (this.settings.curRetries > this.settings.maxRetries) {
           this.settings.curRetries = 0;
@@ -129,7 +129,7 @@ export class TransportTycoon {
   public async getCurrentWeather(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/weather.json`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/weather.json`);
       return Promise.resolve<Weather>(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -139,7 +139,7 @@ export class TransportTycoon {
   public async getActiveAirlineRoutes(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/airline.json`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/airline.json`);
       return Promise.resolve<ActiveAirline>(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -149,7 +149,7 @@ export class TransportTycoon {
   public async getPlayerPositions(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/map/positions.json`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/map/positions.json`);
       return Promise.resolve<PlayerPositions>(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -159,7 +159,7 @@ export class TransportTycoon {
   public async getPlayers(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/players.json`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/players.json`);
       return Promise.resolve<Players>(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -169,7 +169,7 @@ export class TransportTycoon {
   public async getPlayersWidget(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/widget/players.json`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/widget/players.json`);
       return Promise.resolve<PlayerWidget>(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -322,7 +322,7 @@ export class TransportTycoon {
   public async getAdvancedUserlist(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/status/advanced/`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/status/advanced/`);
       return Promise.resolve(res.data);
     } catch (err) {
       return Promise.reject(err);
@@ -332,7 +332,7 @@ export class TransportTycoon {
   public async getWebadmin(server = 0) {
     if (server - 1 > tycoonServers.length) return Promise.reject('Please enter a valid server id from 0 - 9.');
     try {
-      const res = await this.tycoon.get(`http://${tycoonServers[server]}/webadmin/`);
+      const res = await this.tycoon.get(`https://${tycoonServers[server]}/webadmin/`);
       return Promise.resolve(res.data);
     } catch (err) {
       return Promise.reject(err);
