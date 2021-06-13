@@ -89,7 +89,7 @@ export class TransportTycoon {
       }
 
       if (dontRetry) return Promise.reject(error);
-      if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET') && error?.config) {
+      if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET' || error?.response?.status === 502) && error?.config) {
         if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('https://')) return Promise.reject(error);
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
