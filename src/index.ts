@@ -16,16 +16,8 @@ import { Chest } from './models/Chest';
 import { SkillRotation } from './models/ServerData';
 
 const tycoonServers: string[] = [
-  'tycoon-w8r4q4.users.cfx.re',
-  'tycoon-2epova.users.cfx.re',
-  'tycoon-2epovd.users.cfx.re',
-  'tycoon-wdrypd.users.cfx.re',
-  'tycoon-njyvop.users.cfx.re',
-  'tycoon-2r4588.users.cfx.re',
-  'tycoon-npl5oy.users.cfx.re',
-  'tycoon-2vzlde.users.cfx.re',
-  'tycoon-wmapod.users.cfx.re',
-  'tycoon-wxjpge.users.cfx.re',
+  'v1.api.tycoon.community/main',
+  'v1.api.tycoon.community/beta',
 ];
 
 const statNames: string[] = [
