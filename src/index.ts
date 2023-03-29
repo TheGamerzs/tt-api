@@ -59,7 +59,7 @@ export class TransportTycoon {
     this.settings.maxRetries = maxRetries;
 
     this.tycoon = axios.create({
-      baseURL: `https://${tycoonServers[0]}/status`,
+      baseURL: `http://${tycoonServers[0]}/status`,
       timeout
     });
 
@@ -82,10 +82,10 @@ export class TransportTycoon {
 
       if (dontRetry) return Promise.reject(error);
       if ((error?.code === 'ECONNABORTED' || error?.code === 'ECONNRESET' || error?.response?.status === 502) && error?.config) {
-        if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('https://')) return Promise.reject(error);
+        if (error?.code === 'ECONNRESET' && error?.config?.url?.includes('http://')) return Promise.reject(error);
         this.settings.serverIndex++;
         if (this.settings.serverIndex > tycoonServers.length - 1) this.settings.serverIndex = 0;
-        this.tycoon.defaults.baseURL = `https://${tycoonServers[this.settings.serverIndex]}/status`;
+        this.tycoon.defaults.baseURL = `http://${tycoonServers[this.settings.serverIndex]}`;
         this.settings.curRetries++;
         if (this.settings.curRetries > this.settings.maxRetries) {
           this.settings.curRetries = 0;
