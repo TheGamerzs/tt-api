@@ -172,9 +172,20 @@ export class TransportTycoon {
     return this.charges.count;
   }
 
-  public async getCurrentWeather(server = 0) {
+  public async resolveUserId(userId: string) {
+    if (userId.length === 18 || userId.length === 17)
+      return (await this.getUserFromDiscord(userId)).user_id.toString();
+    return userId;
+  }
+
+  public resolveServer(server: number) {
     if (server - 1 > tycoonServers.length)
       return Promise.reject("Please enter a valid server id from 0 - 9.");
+    return server;
+  }
+
+  public async getCurrentWeather(server = 0) {
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/weather.json`
@@ -186,8 +197,7 @@ export class TransportTycoon {
   }
 
   public async getActiveAirlineRoutes(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/airline.json`
@@ -199,8 +209,7 @@ export class TransportTycoon {
   }
 
   public async getPlayerPositions(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/map/positions.json`
@@ -212,8 +221,7 @@ export class TransportTycoon {
   }
 
   public async getPlayers(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/players.json`
@@ -225,8 +233,7 @@ export class TransportTycoon {
   }
 
   public async getPlayersWidget(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/widget/players.json`
@@ -247,8 +254,7 @@ export class TransportTycoon {
   }
 
   public async getUserInventoryHtml(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/inventory/${userId}`);
       return Promise.resolve<Players>(res.data);
@@ -258,8 +264,7 @@ export class TransportTycoon {
   }
 
   public async getUserSkillsHtml(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/skills/${userId}`);
       return Promise.resolve<Players>(res.data);
@@ -269,8 +274,7 @@ export class TransportTycoon {
   }
 
   public async getUserBusinesses(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/getuserbiz/${userId}`);
       return Promise.resolve<Business>(res.data);
@@ -280,8 +284,7 @@ export class TransportTycoon {
   }
 
   public async getUserOwnedVehicles(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/ownedvehicles/${userId}`);
       return Promise.resolve<OwnedVehicles>(res.data);
@@ -291,8 +294,7 @@ export class TransportTycoon {
   }
 
   public async getUserFaction(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/getuserfaq/${userId}`);
       return Promise.resolve<Faction>(res.data);
@@ -347,8 +349,7 @@ export class TransportTycoon {
   }
 
   public async getUserData(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/data/${userId}`);
       return Promise.resolve<UserData>(res.data);
@@ -358,8 +359,7 @@ export class TransportTycoon {
   }
 
   public async getUserDataAdvanced(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/dataadv/${userId}`);
       return Promise.resolve<UserData>(res.data);
@@ -391,8 +391,7 @@ export class TransportTycoon {
   }
 
   public async getAdvancedUserlist(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/advanced/`
@@ -404,8 +403,7 @@ export class TransportTycoon {
   }
 
   public async getWebadmin(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
+    server = await this.resolveServer(server);
     try {
       const res = await this.tycoon.get(
         `http://${tycoonServers[server]}/webadmin/`
@@ -469,8 +467,7 @@ export class TransportTycoon {
   }
 
   public async getUserStreak(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/streak/${userId}`);
       return Promise.resolve<Streak>(res.data);
@@ -573,8 +570,7 @@ export class TransportTycoon {
   }
 
   public async getUserRaces(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      userId = (await this.getUserFromDiscord(userId)).user_id.toString();
+    userId = await this.resolveUserId(userId);
     try {
       const res = await this.tycoon.get(`/racing/races/${userId}`);
       return Promise.resolve<UserRace[]>(res.data);
