@@ -1,35 +1,46 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
-import { PlayerPositions } from "./models/PlayerPositions";
-import { Players } from "./models/Players";
-import { PlayerWidget } from "./models/PlayerWidget";
-import { Snowflake } from "./models/General";
-import { Business } from "./models/Business";
-import { Faction } from "./models/Faction";
-import { UserData } from "./models/UserData";
-import { ActiveAirline } from "./models/ActiveAirline";
-import { Top10 } from "./models/Stats";
-import { Economy } from "./models/Economy";
-import { OwnedVehicles } from "./models/OwnedVehicles";
-import { Weather } from "./models/Weather";
-import { FactionInfo, FactionMember } from "./models/FactionData";
-import { Chest } from "./models/Chest";
-import { SkillRotation } from "./models/ServerData";
-import { Streak } from "./models/Streak";
-import { GroundVehicles } from "./models/GroundVehicles";
-import { PIGSHeist } from "./models/PIGSHeist";
-import { RacingTrack } from "./models/RacingTrack";
-import { ItemInfo } from "./models/ItemInfo";
-import { CoastGuard } from "./models/CoastGuard";
-import { DeadliestCatch } from "./models/DeadliestCatch";
-import { UserRace } from "./models/UserRace";
-import { RacingMap } from "./models/RacingMap";
+import { getPIGSHeist } from "./endpoints/company/getPIGSHeist";
+import { getUsersGroundDeliveryVehicles } from "./endpoints/company/getUsersGroundDeliveryVehicles";
+import { factionBalance } from "./endpoints/faction/balance";
+import { factionInfo } from "./endpoints/faction/Info";
+import { factionMembers } from "./endpoints/faction/members";
+import { factionPerks } from "./endpoints/faction/perks";
+import { factionSize } from "./endpoints/faction/size";
+import { itemInfo } from "./endpoints/general/itemInfo";
+import { racingMap } from "./endpoints/general/racingMap";
+import { racingTracks } from "./endpoints/general/racingTracks";
+import { skillRotation } from "./endpoints/general/skillRotation";
+import { top10 } from "./endpoints/general/top10";
+import { chest } from "./endpoints/player/chest";
+import { chestAdvanced } from "./endpoints/player/chestAdvanced";
+import { deadliestCatch } from "./endpoints/player/deadliestCatch";
+import { userBusinesses } from "./endpoints/player/userBusinesses";
+import { userData } from "./endpoints/player/userData";
+import { userDataAdvanced } from "./endpoints/player/userDataAdvanced";
+import { userFromDiscord } from "./endpoints/player/userFromDiscord";
+import { userOwnedVehicles } from "./endpoints/player/userOwnedVehicles";
+import { userRaces } from "./endpoints/player/userRaces";
+import { userStreak } from "./endpoints/player/userStreak";
+import { activeAirlineRoutes } from "./endpoints/server/activeAirlinesRoutes";
+import { advancedUserlist } from "./endpoints/server/advancedUserlist";
+import { coastGuard } from "./endpoints/server/coastGuard";
+import { currentWeather } from "./endpoints/server/currentWeather";
+import { economyInfo } from "./endpoints/server/economyInfo";
+import { playerPositions } from "./endpoints/server/playerPositions";
+import { players } from "./endpoints/server/players";
+import { playersWidget } from "./endpoints/server/playersWidget";
+import { resourceConfig } from "./endpoints/server/resourceConfig";
+import { userInventoryHtml } from "./endpoints/player/userInventoryHtml";
+import { userSkillsHtml } from "./endpoints/player/userSkilsHtml";
+import { resolveUserId } from "./util/resolveUserId";
+import { setupCharges } from "./util/setupCharges";
 
-const tycoonServers: string[] = [
+export const tycoonServers: string[] = [
   "v1.api.tycoon.community/main",
   "v1.api.tycoon.community/beta",
 ];
 
-const statNames: string[] = [
+export const statNames: string[] = [
   "firefighter_streak_record",
   "omni_void_leaderboard",
   "ems_streak_record",
@@ -49,14 +60,17 @@ const statNames: string[] = [
 ];
 
 export class TransportTycoon {
-  private token: string;
-  public charges = {
+  token: string;
+
+  charges = {
     checking: false,
     count: 0,
     loaded: false,
   };
-  private tycoon: AxiosInstance;
-  public settings = {
+
+  tycoon: AxiosInstance;
+
+  settings = {
     serverIndex: 0,
     maxRetries: 10,
     curRetries: 0,
@@ -153,429 +167,52 @@ export class TransportTycoon {
     );
   }
 
-  public async setupCharges() {
-    if (this.charges.checking && this.token) {
-      const charges = await this.tycoon.get("/charges.json");
-      if (!charges?.data[0]) return Promise.resolve(false);
-      if (charges.data[0] === 0)
-        return Promise.reject({
-          msg: "[TransportTycoon] Charges returned 0. Is your key valid & does it have charges?",
-          code: "no_charges",
-        });
-      this.charges.count = charges.data[0];
-      this.charges.loaded = true;
-      return Promise.resolve(charges.data[0]);
-    } else return Promise.resolve(false);
-  }
+  setupCharges = setupCharges.bind(this);
 
-  public getCharges() {
-    return this.charges.count;
-  }
+  resolveUserId = resolveUserId.bind(this);
 
-  public async resolveUserId(userId: string) {
-    if (userId.length === 18 || userId.length === 17)
-      return (await this.getUserFromDiscord(userId)).user_id.toString();
-    return userId;
-  }
+  //Register endpoints
 
-  public resolveServer(server: number) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject("Please enter a valid server id from 0 - 9.");
-    return server;
-  }
+  //Server
+  getActiveAirlineRoutes = activeAirlineRoutes.bind(this);
+  getAdvancedUserlist = advancedUserlist.bind(this);
+  getCoastGuard = coastGuard.bind(this);
+  getCurrentWeather = currentWeather.bind(this);
+  getEconomyInfo = economyInfo.bind(this);
+  getPlayerPositions = playerPositions.bind(this);
+  getPlayers = players.bind(this);
+  getPlayersWidget = playersWidget.bind(this);
+  getResourceConfig = resourceConfig.bind(this);
 
-  public async getCurrentWeather(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/weather.json`
-      );
-      return Promise.resolve<Weather>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
+  //Player
+  getChest = chest.bind(this);
+  getChestAdvanced = chestAdvanced.bind(this);
+  getDeadliestCatch = deadliestCatch.bind(this);
+  getUserBusinesses = userBusinesses.bind(this);
+  getUserData = userData.bind(this);
+  getUserDataAdvanced = userDataAdvanced.bind(this);
+  getUserFromDiscord = userFromDiscord.bind(this);
+  getUserInventoryHtml = userInventoryHtml.bind(this);
+  getUserOwnedVehicles = userOwnedVehicles.bind(this);
+  getUserRaces = userRaces.bind(this);
+  getUserSkillHtml = userSkillsHtml.bind(this);
+  getUserStreak = userStreak.bind(this);
 
-  public async getActiveAirlineRoutes(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/airline.json`
-      );
-      return Promise.resolve<ActiveAirline>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
+  //Faction
+  getFactionBalance = factionBalance.bind(this);
+  getFactionInfo = factionInfo.bind(this);
+  getFactionMembers = factionMembers.bind(this);
+  getFactionPerks = factionPerks.bind(this);
+  getFactionSize = factionSize.bind(this);
 
-  public async getPlayerPositions(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/map/positions.json`
-      );
-      return Promise.resolve<PlayerPositions>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
+  //General
+  getTop10 = top10.bind(this);
+  getSkillRotation = skillRotation.bind(this);
+  getItemInfo = itemInfo.bind(this);
+  getRacingTracks = racingTracks.bind(this);
+  getRacingMap = racingMap.bind(this);
 
-  public async getPlayers(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/players.json`
-      );
-      return Promise.resolve<Players>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getPlayersWidget(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/widget/players.json`
-      );
-      return Promise.resolve<PlayerWidget>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserFromDiscord(discordId: string) {
-    try {
-      const res = await this.tycoon.get(`/snowflake2user/${discordId}`);
-      return Promise.resolve<Snowflake>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserInventoryHtml(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/inventory/${userId}`);
-      return Promise.resolve<Players>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserSkillsHtml(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/skills/${userId}`);
-      return Promise.resolve<Players>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserBusinesses(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/getuserbiz/${userId}`);
-      return Promise.resolve<Business>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserOwnedVehicles(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/ownedvehicles/${userId}`);
-      return Promise.resolve<OwnedVehicles>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserFaction(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/getuserfaq/${userId}`);
-      return Promise.resolve<Faction>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getKeyFactionSize() {
-    try {
-      const res = await this.tycoon.get("/faction/size.json");
-      return Promise.resolve<[size: number]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getKeyFactionMembers() {
-    try {
-      const res = await this.tycoon.get("/faction/members.json");
-      return Promise.resolve<FactionMember[]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getKeyFactionPerks() {
-    try {
-      const res = await this.tycoon.get("/faction/perks.json");
-      return Promise.resolve<[perks: number]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getKeyFactionBalance() {
-    try {
-      const res = await this.tycoon.get("/faction/balance.json");
-      return Promise.resolve<[balance: number]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getKeyFactionInfo() {
-    try {
-      const res = await this.tycoon.get("/faction/info.json");
-      return Promise.resolve<FactionInfo>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserData(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/data/${userId}`);
-      return Promise.resolve<UserData>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserDataAdvanced(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/dataadv/${userId}`);
-      return Promise.resolve<UserData>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getTop10(statName: string) {
-    if (!statNames.includes(statName))
-      return Promise.reject(
-        "Stat name invalid. List of valid stats: " + statNames.join(", ")
-      );
-    try {
-      const res = await this.tycoon.get(`/top10/${statName}`);
-      return Promise.resolve<Top10>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getResourceConfig(resourceName: string) {
-    try {
-      const res = await this.tycoon.get(`/config/${resourceName}`);
-      return Promise.resolve(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getAdvancedUserlist(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/advanced/`
-      );
-      return Promise.resolve(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getWebadmin(server = 0) {
-    server = await this.resolveServer(server);
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/webadmin/`
-      );
-      return Promise.resolve(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getEconomyInfo() {
-    try {
-      const res = await this.tycoon.get("/economy.csv");
-      const economy = res.data.split("\n");
-      economy.pop();
-      const formattedData = economy.map((data: string | string[]) => {
-        const splitData = (data as string).split(";");
-        const cleanData = {
-          time: new Date(parseInt(splitData[0], 10) * 1000),
-          debt: splitData[1],
-          money: splitData[2],
-          debtCount: splitData[3],
-          millionares: splitData[4],
-          billionares: splitData[5],
-        };
-        return cleanData;
-      });
-      return Promise.resolve<Economy[]>(formattedData);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getChestAdvanced(searchId: string) {
-    try {
-      const res = await this.tycoon.get(`/chestadv/${searchId}`);
-      return Promise.resolve<Chest>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getChest(searchId: string) {
-    try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
-      const res = await this.tycoon.get(`/chest/${searchId}`);
-      return Promise.resolve<Chest>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getSkillRotation() {
-    try {
-      if (this.charges.checking && this.charges.count > 0) this.charges.count--;
-      const res = await this.tycoon.get("/skillrotation.json");
-      return Promise.resolve<SkillRotation>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserStreak(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/streak/${userId}`);
-      return Promise.resolve<Streak>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUsersGroundDeliveryVehicles(
-    publicKey: string = "",
-    server = 0
-  ) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject(
-        "Please enter a valid server id from 0 - " + tycoonServers.length
-      );
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/companies/rts/ground.json`,
-        {
-          headers: {
-            ...(publicKey && { "X-Tycoon-Public-Key": publicKey }),
-          },
-        }
-      );
-      return Promise.resolve<GroundVehicles>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getPIGSHeist(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject(
-        "Please enter a valid server id from 0 - " + tycoonServers.length
-      );
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/companies/pigs/heist.json`
-      );
-      return Promise.resolve<PIGSHeist>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getDeadliestCatch(publicKey: string = "") {
-    try {
-      const res = await this.tycoon.get(`/deadliest_catch.json`, {
-        headers: {
-          ...(publicKey && { "X-Tycoon-Public-Key": publicKey }),
-        },
-      });
-      return Promise.resolve<DeadliestCatch>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getCoastGuard(server = 0) {
-    if (server - 1 > tycoonServers.length)
-      return Promise.reject(
-        "Please enter a valid server id from 0 - " + tycoonServers.length
-      );
-    try {
-      const res = await this.tycoon.get(
-        `http://${tycoonServers[server]}/coastguard.json`
-      );
-      return Promise.resolve<CoastGuard>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getItemInfo(itemName: string) {
-    try {
-      const res = await this.tycoon.get(`/iteminfo/${itemName}`);
-      return Promise.resolve<ItemInfo>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getRacingTracks() {
-    try {
-      const res = await this.tycoon.get(`/racing/tracks.json`);
-      return Promise.resolve<RacingTrack[]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getRacingMap(mapId: string) {
-    try {
-      const res = await this.tycoon.get(`/racing/map/${mapId}.json`);
-      return Promise.resolve<RacingMap>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  public async getUserRaces(userId: string) {
-    userId = await this.resolveUserId(userId);
-    try {
-      const res = await this.tycoon.get(`/racing/races/${userId}`);
-      return Promise.resolve<UserRace[]>(res.data);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
+  //Company
+  getUsersGroundDeliveryVehicles = getUsersGroundDeliveryVehicles.bind(this);
+  getPIGSHeist = getPIGSHeist.bind(this);
 }
